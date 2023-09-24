@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 from functools import reduce
 from pprint import pprint
 from time import time
+from typing import List
+import concurrent.futures
 import requests
 
 
@@ -116,6 +118,16 @@ class Scraper:
         return True if price else False
 
 
+def process_wishlist(wishlist_url: List[str], scraper: Scraper):
+    books_urls = scraper.get_books_url_from_wishlist(wishlist_url)
+    wishlist_name = Utils.extract_name_from_url(wishlist_url)
+
+    for book_url in books_urls:
+        data = scraper.get_book_data_from_url(book_url)
+        data = scraper.add_wishlist_name_to_data(data, wishlist_name)
+        pprint(data)
+        print()
+
 if __name__ == '__main__':
     scraper = Scraper()
 
@@ -148,16 +160,10 @@ if __name__ == '__main__':
 
     start_time = time()
 
-    for wishlist_url in wishlist:
-        books_urls = scraper.get_books_url_from_wishlist(wishlist_url)
-        wishlist_name = Utils.extract_name_from_url(wishlist_url)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(process_wishlist, url, scraper) for url in wishlist]
+        concurrent.futures.wait(futures)
 
-        for book_url in books_urls:
-
-            data = scraper.get_book_data_from_url(book_url)
-            data = scraper.add_wishlist_name_to_data(data, wishlist_name)
-            pprint(data)
-            print()
 
     final_time = time()
 

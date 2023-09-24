@@ -31,10 +31,11 @@ class Scraper:
         pass
         # TODO: change to a list of urls
 
-    """
-    Extract url for each book in a wishlist url
-    """
+
     def get_books_url_from_wishlist(self, wishlist_url):
+        """
+        Extract url for each book in a wishlist url
+        """
         request = requests.get(wishlist_url)
         soup = BeautifulSoup(request.text, "html.parser")
 
@@ -55,11 +56,10 @@ class Scraper:
         return books_urls
         
 
-    """
-    Extract data for a book passing the book url
-    """
     def get_book_data_from_url(self, book_url):
-        # TODO: extract in a JSON all data from the book
+        """
+        Extract data for a book passing the book url
+        """
         request = requests.get(book_url)
         soup = BeautifulSoup(request.text, 'html.parser')
         data = {}
@@ -74,7 +74,7 @@ class Scraper:
         data['title'] = title
         # print(title)
 
-        # TODO: parse result and cast  to an integer
+        # TODO: parse result and cast to an integer
         price = self.get_book_price(soup)
         data['price'] = price
         # print(price)
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     start_time = time()
 
     for wishlist_url in wishlist:
-        books_urls = scraper.get_books_url_from_wishlist(wishlist_url=wishlist_url)
+        books_urls = scraper.get_books_url_from_wishlist(wishlist_url)
         wishlist_name = Utils.extract_name_from_url(wishlist_url)
 
         for book_url in books_urls:

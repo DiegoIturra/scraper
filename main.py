@@ -3,7 +3,6 @@ from functools import reduce
 from pprint import pprint
 from time import time
 from typing import List
-import concurrent.futures
 import requests
 
 
@@ -24,30 +23,15 @@ class Utils:
         extracted_values = last_token.split('.')
 
         price = reduce(lambda x, y: x + y, extracted_values)
-        return price
+        return int(price)
 
-
-class DataCollector:
-    def __init__(self):
-        self.data = []
-
-    def add_data(self, data):
-        self.data.append(data)
-
-    def get_data(self):
-        return self.data
-    
-    def print_all_data(self):
-        for data in self.data:
-            print(data)
-            print()
 
 class WishlistManager:
 
     def __init__(self):
         self.wishlist = [
             'https://www.buscalibre.cl/v2/pendientes_486712_l.html',
-            'https://www.buscalibre.cl/v2/daredevil-mark-waid_1520599_l.html'
+            'https://www.buscalibre.cl/v2/daredevil-mark-waid_1520599_l.html',
             'https://www.buscalibre.cl/v2/software-development_503034_l.html',
             'https://www.buscalibre.cl/v2/comics_545021_l.html',
             'https://www.buscalibre.cl/v2/pendientes-2_567662_l.html',
@@ -83,9 +67,6 @@ class WishlistManager:
         return self.wishlist
     
 
-
-
-
 class Scraper:
 
     def get_books_url_from_wishlist(self, wishlist_url):
@@ -111,7 +92,6 @@ class Scraper:
 
         return books_urls
         
-
     def get_book_data_from_url(self, book_url):
         """
         Extract data for a book passing the book url
@@ -182,21 +162,24 @@ def process_wishlist(wishlist_url: str, scraper: Scraper, data_collector: DataCo
         data = scraper.add_wishlist_name_to_data(data, wishlist_name)
         data_collector.add_data(data)
 
-if __name__ == '__main__':
+def execute_task():
     scraper = Scraper()
-    data_collector = DataCollector()
     wishlist_manager = WishlistManager()
 
     wishlist = wishlist_manager.get_wishlist()
 
     start_time = time()
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        futures = [executor.submit(process_wishlist, url, scraper, data_collector) for url in wishlist]
-        concurrent.futures.wait(futures)
+    for wishlist_url in wishlist:
+        list_of_books = scraper.get_books_url_from_wishlist(wishlist_url)
 
-    data_collector.print_all_data()
+        for book_url in list_of_books:
+            pprint(scraper.get_book_data_from_url(book_url))
+            print()
 
     final_time = time()
 
     print(f"total time: {final_time - start_time} seconds")
+
+if __name__ == '__main__':
+    execute_task()

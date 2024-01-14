@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from functools import reduce
 from pprint import pprint
 from time import time
-from typing import List
+from typing import List, Tuple
 import requests
 
 
@@ -153,16 +153,18 @@ class Scraper:
 
  
 
-def process_wishlist(wishlist_url: str, scraper: Scraper):
+def process_wishlist(wishlist_url: str, scraper: Scraper) -> Tuple[List[str], str]:
     books_urls = scraper.get_books_url_from_wishlist(wishlist_url)
     wishlist_name = Utils.extract_name_from_url(wishlist_url)
 
-    for book_url in books_urls:
-        data = scraper.get_book_data_from_url(book_url)
-        data = scraper.add_wishlist_name_to_data(data, wishlist_name)
+    return (books_urls, wishlist_name)
 
-        pprint(data)
-        print()
+    # for book_url in books_urls:
+    #     data = scraper.get_book_data_from_url(book_url)
+    #     data = scraper.add_wishlist_name_to_data(data, wishlist_name)
+
+    #     pprint(data)
+    #     print()
 
 def execute_task():
     scraper = Scraper()
@@ -173,7 +175,10 @@ def execute_task():
     start_time = time()
 
     for wishlist_url in wishlist:
-        process_wishlist(wishlist_url, scraper)
+        result = process_wishlist(wishlist_url, scraper)
+        
+        print(result)
+        print()
 
     final_time = time()
 

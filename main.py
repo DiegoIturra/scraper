@@ -102,20 +102,20 @@ class Scraper:
 
         data['book_url'] = book_url
 
-        image_url = self.get_book_image(soup)
+        image_url = self._get_book_image(soup)
         data['image'] = image_url
         # print(image_url)    
 
-        title = self.get_book_title(soup)
+        title = self._get_book_title(soup)
         data['title'] = title
         # print(title)
 
         # TODO: parse result and cast to an integer
-        price = self.get_book_price(soup)
+        price = self._get_book_price(soup)
         data['price'] = price
         # print(price)
 
-        availability = self.get_book_availability(price)
+        availability = self._get_book_availability(price)
         data['availability'] = availability
         # print(availability)
 
@@ -153,14 +153,16 @@ class Scraper:
 
  
 
-def process_wishlist(wishlist_url: str, scraper: Scraper, data_collector: DataCollector):
+def process_wishlist(wishlist_url: str, scraper: Scraper):
     books_urls = scraper.get_books_url_from_wishlist(wishlist_url)
     wishlist_name = Utils.extract_name_from_url(wishlist_url)
 
     for book_url in books_urls:
         data = scraper.get_book_data_from_url(book_url)
         data = scraper.add_wishlist_name_to_data(data, wishlist_name)
-        data_collector.add_data(data)
+
+        pprint(data)
+        print()
 
 def execute_task():
     scraper = Scraper()
@@ -171,11 +173,7 @@ def execute_task():
     start_time = time()
 
     for wishlist_url in wishlist:
-        list_of_books = scraper.get_books_url_from_wishlist(wishlist_url)
-
-        for book_url in list_of_books:
-            pprint(scraper.get_book_data_from_url(book_url))
-            print()
+        process_wishlist(wishlist_url, scraper)
 
     final_time = time()
 

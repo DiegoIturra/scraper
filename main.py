@@ -125,7 +125,7 @@ class Scraper:
         data['wishlist'] = wishlist_name
         return data
 
-    def get_book_image(self, soup):
+    def _get_book_image(self, soup):
         image_div = soup.find('div', {'class': 'imagen'})
         img = image_div.find('img')
 
@@ -134,21 +134,21 @@ class Scraper:
             return image_url
         return None
 
-    def get_book_title(self, soup):
+    def _get_book_title(self, soup):
         title = soup.find('p', {'class': 'tituloProducto'})
 
         if title:
             return title.text
         return None
 
-    def get_book_price(self, soup):
+    def _get_book_price(self, soup):
         price = soup.find('p', {'class': 'precioAhora'})
 
         if price:
             return Utils.parse_price_into_number(price.text)
         return None
 
-    def get_book_availability(self, price):
+    def _get_book_availability(self, price):
         return True if price else False
 
  

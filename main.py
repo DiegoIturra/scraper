@@ -57,13 +57,13 @@ class WishlistManager:
         ]
 
     
-    def add_url(self, url: str):
+    def add_url(self, url: str) -> None:
         self.wishlist.append(url)
 
-    def remove_url(self, url: str):
+    def remove_url(self, url: str) -> None:
         self.wishlist.remove(url)
 
-    def get_wishlist(self):
+    def get_wishlist(self) -> List[str]:
         return self.wishlist
     
 

@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import reduce
 from pprint import pprint
 from time import time
@@ -166,6 +167,29 @@ def process_wishlist(wishlist_url: str, scraper: Scraper) -> Tuple[List[str], st
     #     pprint(data)
     #     print()
 
+
+def process_all_wishlist(wishlist: List[str], scraper: Scraper):
+    results = {}
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(process_wishlist, url, scraper): url for url in wishlist}
+        
+        for future in as_completed(futures):
+            url = futures[future]
+            try:
+                result = future.result()
+                results[url] = result
+                
+                print(f"Length of list {result[1]} is {len(result[0])}")
+                print(result)
+                
+                print()
+            except Exception as e:
+                print(f"Error processing wishlist URL {url}: {e}")
+
+    return results
+
+
 def execute_task():
     scraper = Scraper()
     wishlist_manager = WishlistManager()
@@ -174,11 +198,7 @@ def execute_task():
 
     start_time = time()
 
-    for wishlist_url in wishlist:
-        result = process_wishlist(wishlist_url, scraper)
-        
-        print(result)
-        print()
+    result = process_all_wishlist(wishlist, scraper)
 
     final_time = time()
 

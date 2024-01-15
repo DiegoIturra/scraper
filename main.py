@@ -168,7 +168,7 @@ def process_book_url(book_url: str, wishlist_name: str, scraper: Scraper): #retu
 
 
 def process_all_wishlist(wishlist: List[str], scraper: Scraper):
-    results = {}
+    results = []
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(process_wishlist, url, scraper): url for url in wishlist}
@@ -177,7 +177,9 @@ def process_all_wishlist(wishlist: List[str], scraper: Scraper):
             url = futures[future]
             try:
                 result = future.result()
-                results[url] = result
+                # results[url] = result
+
+                results.append(result)
                 
             except Exception as e:
                 print(f"Error processing wishlist URL {url}: {e}")
@@ -186,7 +188,7 @@ def process_all_wishlist(wishlist: List[str], scraper: Scraper):
 
 
 def process_all_books_urls(list_of_books_urls: List[str], wishlist_name: str, scraper: Scraper):
-    results = {}
+    results = []
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = { executor.submit(process_book_url, url, wishlist_name, scraper): url for url in list_of_books_urls }
@@ -195,10 +197,9 @@ def process_all_books_urls(list_of_books_urls: List[str], wishlist_name: str, sc
             url = futures[future]
             try:
                 result = future.result()
-                results[url] = result
 
-                pprint(result)
-                print()
+                results.append(result)
+
             except Exception as e:
                 print(f"Error processing book URL {url}: {e}")
     return results
@@ -212,16 +213,18 @@ def execute_task():
 
     start_time = time()
 
-    result = process_all_wishlist(wishlist, scraper)
+    results = process_all_wishlist(wishlist, scraper)
 
-    second_scraper = Scraper()
+    for result in results:
+        list_of_books_urls = result[0]
+        wishlist_name = result[1]
 
-    for value in result.values():
-        list_of_books_urls = value[0]
-        wishlist_name = value[1]
-
-        book_data = process_all_books_urls(list_of_books_urls, wishlist_name, second_scraper)
-
+        list_of_books_data = process_all_books_urls(list_of_books_urls, wishlist_name, scraper)
+        
+        for book_data in list_of_books_data:
+            pprint(book_data)
+            print()
+        
 
     final_time = time()
 

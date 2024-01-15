@@ -160,12 +160,11 @@ def process_wishlist(wishlist_url: str, scraper: Scraper) -> Tuple[List[str], st
 
     return (books_urls, wishlist_name)
 
-    # for book_url in books_urls:
-    #     data = scraper.get_book_data_from_url(book_url)
-    #     data = scraper.add_wishlist_name_to_data(data, wishlist_name)
+def process_book_url(book_url: str, wishlist_name: str, scraper: Scraper): #return data about each book
+    data = scraper.get_book_data_from_url(book_url)
+    data = scraper.add_wishlist_name_to_data(data, wishlist_name)
 
-    #     pprint(data)
-    #     print()
+    return data
 
 
 def process_all_wishlist(wishlist: List[str], scraper: Scraper):
@@ -180,13 +179,28 @@ def process_all_wishlist(wishlist: List[str], scraper: Scraper):
                 result = future.result()
                 results[url] = result
                 
-                print(f"Length of list {result[1]} is {len(result[0])}")
-                print(result)
-                
-                print()
             except Exception as e:
                 print(f"Error processing wishlist URL {url}: {e}")
 
+    return results
+
+
+def process_all_books_urls(list_of_books_urls: List[str], wishlist_name: str, scraper: Scraper):
+    results = {}
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = { executor.submit(process_book_url, url, wishlist_name, scraper): url for url in list_of_books_urls }
+
+        for future in as_completed(futures):
+            url = futures[future]
+            try:
+                result = future.result()
+                results[url] = result
+
+                pprint(result)
+                print()
+            except Exception as e:
+                print(f"Error processing book URL {url}: {e}")
     return results
 
 
@@ -199,6 +213,15 @@ def execute_task():
     start_time = time()
 
     result = process_all_wishlist(wishlist, scraper)
+
+    second_scraper = Scraper()
+
+    for value in result.values():
+        list_of_books_urls = value[0]
+        wishlist_name = value[1]
+
+        book_data = process_all_books_urls(list_of_books_urls, wishlist_name, second_scraper)
+
 
     final_time = time()
 

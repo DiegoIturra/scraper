@@ -16,7 +16,6 @@ def process_wishlist(wishlist_url: str, scraper: Scraper) -> Tuple[List[str], st
 def process_book_url(book_url: str, wishlist_name: str, scraper: Scraper): #return data about each book
     data = scraper.get_book_data_from_url(book_url)
     data = scraper.add_wishlist_name_to_data(data, wishlist_name)
-
     return data
 
 
@@ -30,7 +29,6 @@ def process_all_wishlist(wishlist: List[str], scraper: Scraper):
             url = futures[future]
             try:
                 result = future.result()
-                # results[url] = result
 
                 results.append(result)
                 
@@ -59,6 +57,8 @@ def process_all_books_urls(list_of_books_urls: List[str], wishlist_name: str, sc
 
 
 def execute_task():
+
+    counter = 0
     scraper = Scraper()
     wishlist_manager = WishlistManager()
 
@@ -73,6 +73,7 @@ def execute_task():
         wishlist_name = result[1]
 
         list_of_books_data = process_all_books_urls(list_of_books_urls, wishlist_name, scraper)
+        counter += len(list_of_books_data)
         
         for book_data in list_of_books_data:
             pprint(book_data)
@@ -82,6 +83,7 @@ def execute_task():
     final_time = time()
 
     print(f"total time: {final_time - start_time} seconds")
+    print(f"total books {counter}")
 
 if __name__ == '__main__':
     execute_task()

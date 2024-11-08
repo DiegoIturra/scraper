@@ -1,12 +1,12 @@
 from pprint import pprint
 from scraper import Scraper
 from time import time, sleep
-from typing import List, Tuple
+from typing import List
 from utils import Utils
 from wishlist_manager import WishlistManager
 
 
-def process_wishlist(wishlist_url: str, scraper: Scraper) -> Tuple[List[str], str]:
+def process_wishlist(wishlist_url: str, scraper: Scraper) -> List[str]:
     books_data = scraper.get_book_data_from_wishlist(wishlist_url)
     return books_data
 

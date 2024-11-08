@@ -7,6 +7,28 @@ import time
 
 class Scraper:
 
+    def __get_title(self, item) -> str:
+        title = item.find('div', {'class': 'titulo'}).get_text()
+        return title.strip()
+    
+    def __get_image(self, item) -> str:
+        image_div_container = item.find('div', {'class': 'portadaProducto'})
+        image = image_div_container.find('img')
+        return image['src']
+    
+    def __get_url(self, item) -> str:
+        book_url_div = item.find('a')
+        return book_url_div.get('href') if book_url_div else None
+
+    def __get_price(self, item) -> int:
+        price = item.find('div', {'class': 'precioAhora'})
+        price = price.get_text() if price else None
+        return Utils.parse_price_into_number(price)
+        
+    def __get_availability(self, price) -> bool:
+        return True if price else False
+    
+
     def get_book_data_from_wishlist(self, wishlist_url):
         """
         Extract url for each book in a wishlist url
@@ -29,29 +51,14 @@ class Scraper:
         for result in results:
             item = result.find('div', {'class': 'seccionProducto'})
 
-            book_url_div = item.find('a')
-            if book_url_div:
-                href = book_url_div.get('href')
-
-            # find name
-            title = item.find('div', {'class': 'titulo'}).get_text()
-            title = title.strip()
-
-            # find image url
-            image_div_container = item.find('div', {'class': 'portadaProducto'})
-            image = image_div_container.find('img')
-            image_url = image['src']
-
-            # find price
-            price = item.find('div', {'class': 'precioAhora'})
-            price = price.get_text() if price else None
-            price = Utils.parse_price_into_number(price)
+            price = self.__get_price(item)
             
             data = {
-                'title': title,
-                'url': href,
-                'image': image_url,
-                'price': price,
+                'title': self.__get_title(item),
+                'url': self.__get_url(item),
+                'image': self.__get_image(item),
+                'price': self.__get_price(item),
+                'availability': self.__get_availability(price),
                 'wishlist': wishlist_name
             }
 

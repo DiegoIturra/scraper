@@ -11,6 +11,9 @@ class Utils:
 
     @staticmethod
     def parse_price_into_number(price: str):
+        if not price:
+            return None
+
         tokens = price.split('$')
         last_token = tokens[-1:][0].strip()
 

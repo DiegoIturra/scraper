@@ -21,7 +21,7 @@ def execute_task():
     start_time = time()
 
     for wishlist_url in wishlist:
-        results, wishlist_name = process_wishlist(wishlist_url, scraper=scraper)
+        results = process_wishlist(wishlist_url, scraper=scraper)
 
         for data in results:
             pprint(data)

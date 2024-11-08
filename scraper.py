@@ -1,87 +1,60 @@
 from bs4 import BeautifulSoup
-import requests
 from utils import Utils
+import random
+import requests
+import time
+
 
 class Scraper:
 
-    def get_books_url_from_wishlist(self, wishlist_url):
+    def get_book_data_from_wishlist(self, wishlist_url):
         """
         Extract url for each book in a wishlist url
         """
-        request = requests.get(wishlist_url)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"
+        }
+
+        request = requests.get(wishlist_url, headers=headers)
         soup = BeautifulSoup(request.text, "html.parser")
 
         #Get the main container to all books
         results = soup.find('div', {'class': 'listadoProductos'})
         
-        books_urls = []
+        books_data = []
+
+        # Extract wishlist name
+        wishlist_name = Utils.extract_name_from_url(wishlist_url)
 
         for result in results:
             item = result.find('div', {'class': 'seccionProducto'})
 
-            image_div = item.find('a')
+            book_url_div = item.find('a')
+            if book_url_div:
+                href = book_url_div.get('href')
 
-            if image_div:
-                href = image_div.get('href')
-                books_urls.append(href)
+            # find name
+            title = item.find('div', {'class': 'titulo'}).get_text()
+            title = title.strip()
 
-        return books_urls
-        
-    def get_book_data_from_url(self, book_url):
-        """
-        Extract data for a book passing the book url
-        """
-        request = requests.get(book_url)
-        soup = BeautifulSoup(request.text, 'html.parser')
-        data = {}
+            # find image url
+            image_div_container = item.find('div', {'class': 'portadaProducto'})
+            image = image_div_container.find('img')
+            image_url = image['src']
 
-        data['book_url'] = book_url
+            # find price
+            price = item.find('div', {'class': 'precioAhora'})
+            price = price.get_text() if price else None
+            price = Utils.parse_price_into_number(price)
+            
+            data = {
+                'title': title,
+                'url': href,
+                'image': image_url,
+                'price': price,
+                'wishlist': wishlist_name
+            }
 
-        image_url = self._get_book_image(soup)
-        data['image'] = image_url
-        # print(image_url)    
+            books_data.append(data)
 
-        title = self._get_book_title(soup)
-        data['title'] = title
-        # print(title)
-
-        # TODO: parse result and cast to an integer
-        price = self._get_book_price(soup)
-        data['price'] = price
-        # print(price)
-
-        availability = self._get_book_availability(price)
-        data['availability'] = availability
-        # print(availability)
-
-        return data
-
-    def add_wishlist_name_to_data(self, data, wishlist_name):
-        data['wishlist'] = wishlist_name
-        return data
-
-    def _get_book_image(self, soup):
-        image_div = soup.find('div', {'class': 'imagen'})
-        img = image_div.find('img')
-
-        if img:
-            image_url = img.get('data-src')
-            return image_url
-        return None
-
-    def _get_book_title(self, soup):
-        title = soup.find('p', {'class': 'tituloProducto'})
-
-        if title:
-            return title.text
-        return None
-
-    def _get_book_price(self, soup):
-        price = soup.find('p', {'class': 'precioAhora'})
-
-        if price:
-            return Utils.parse_price_into_number(price.text)
-        return None
-
-    def _get_book_availability(self, price):
-        return True if price else False
+        return books_data

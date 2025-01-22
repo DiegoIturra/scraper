@@ -44,5 +44,5 @@ class DatabaseManager:
         try:
             self._pool.closeall()
         except Exception as e:
-            print(f"Error al cerrar todas las conexiones: {e}")
+            print(f"Error closing all connections: {e}")
             raise

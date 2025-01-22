@@ -1,10 +1,13 @@
 from bs4 import BeautifulSoup
+from typing import List, Any
 from utils import Utils
 import random
 import requests
 import time
 
-
+"""
+TODO: Add Handle Exceptions in methods to do scraping
+"""
 class Scraper:
 
     def __get_title(self, item) -> str:
@@ -28,8 +31,7 @@ class Scraper:
     def __get_availability(self, price) -> bool:
         return True if price else False
     
-
-    def get_book_data_from_wishlist(self, wishlist_url):
+    def get_book_data_from_wishlist(self, wishlist_url: str) -> List[Any]:
         """
         Extract url for each book in a wishlist url
         """
@@ -42,6 +44,9 @@ class Scraper:
 
         #Get the main container to all books
         results = soup.find('div', {'class': 'listadoProductos'})
+
+        if not results:
+            return []
         
         books_data = []
 
@@ -49,6 +54,7 @@ class Scraper:
         wishlist_name = Utils.extract_name_from_url(wishlist_url)
 
         for result in results:
+
             item = result.find('div', {'class': 'seccionProducto'})
 
             price = self.__get_price(item)

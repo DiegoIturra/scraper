@@ -1,11 +1,12 @@
+from database_manager import DatabaseManager
 from datetime import datetime
 from pprint import pprint
 from scraper import Scraper
 from time import time, sleep
 from typing import List, Any
 from utils import Utils
+import os
 import psycopg2
-from database_manager import DatabaseManager
 
 def process_wishlist(wishlist_url: str, scraper: Scraper) -> List[Any]:
     books_data = scraper.get_book_data_from_wishlist(wishlist_url)
@@ -39,11 +40,11 @@ def execute_task():
     start_time = time()
 
     database_config = {
-        "user": "postgres",
-        "password": "database_password",
+        "user": os.getenv('DATABASE_USER'),
+        "password": os.getenv('DATABASE_PASSWORD'),
         "host": "localhost",
         "port": 5432,
-        "database": "scraper_database"
+        "database": os.getenv('DATABASE_NAME')
     }
 
     database_manager = DatabaseManager(database_config)

@@ -33,7 +33,7 @@ def execute_query_with_connection(connection, query, params=None, fetch=None):
         raise e
 
 def execute_task():
-    counter = 0
+    number_of_books = 0
     scraper = Scraper()
 
     start_time = time()
@@ -53,7 +53,7 @@ def execute_task():
         print('Error getting connection')
         return
 
-    get_wishlists_query = 'SELECT url FROM wishlists'
+    get_wishlists_query = "SELECT url FROM wishlists"
 
     results = execute_query_with_connection(connection=connection, query=get_wishlists_query, fetch='all')
     wishlists = list(map(lambda x: x[0], results))
@@ -81,6 +81,9 @@ def execute_task():
 
     for wishlist_url in wishlists:
         books = process_wishlist(wishlist_url, scraper=scraper)
+
+        if len(books) == 0:
+            continue
 
         timestamp = datetime.now()
 
@@ -141,15 +144,15 @@ def execute_task():
 
         sleep(5)
 
-        counter += len(books)
+        number_of_books += len(books)
 
-    connection.release_connection()
-    connection.close_all_connections()
+    database_manager.release_connection(connection)
+    database_manager.close_all_connections()
 
     final_time = time()
 
     print(f"total time: {final_time - start_time} seconds")
-    print(f"total books {counter}")
+    print(f"total books {number_of_books}")
 
 if __name__ == '__main__':
     execute_task()

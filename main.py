@@ -5,34 +5,59 @@ from time import time, sleep
 from typing import List, Any
 from utils import Utils
 import psycopg2
+from database_manager import DatabaseManager
 
 def process_wishlist(wishlist_url: str, scraper: Scraper) -> List[Any]:
     books_data = scraper.get_book_data_from_wishlist(wishlist_url)
     return books_data
 
+def execute_query_with_connection(connection, query, params=None, fetch=None):
+    """
+    fetch:
+        - None: just execute commit operation
+        - 'one': do a fetchone() operation and return
+        - 'all': do a fetchall() operation and return
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+
+            if fetch == 'one':
+                return cursor.fetchone()
+            elif fetch == 'all':
+                return cursor.fetchall()
+            else:
+                connection.commit()
+                return None
+    except Exception as e:
+        raise e
+
 def execute_task():
     counter = 0
     scraper = Scraper()
 
-    # Open a connection with the database
-    connection = psycopg2.connect(
-        user="postgres",
-        password="database_password",
-        host="localhost",
-        port="5432",
-        database="scraper_database"
-    )
-
-    cursor = connection.cursor()
-
-    # Get all wishlist urls
-    cursor.execute('SELECT url FROM wishlists')
-    results = cursor.fetchall()
-    wishlists = list(map(lambda x: x[0], results))
-
     start_time = time()
 
+    database_config = {
+        "user": "postgres",
+        "password": "database_password",
+        "host": "localhost",
+        "port": 5432,
+        "database": "scraper_database"
+    }
 
+    database_manager = DatabaseManager(database_config)
+    connection = database_manager.get_connection()
+
+    if not connection:
+        print('Error getting connection')
+        return
+
+    get_wishlists_query = 'SELECT url FROM wishlists'
+
+    results = execute_query_with_connection(connection=connection, query=get_wishlists_query, fetch='all')
+    wishlists = list(map(lambda x: x[0], results))
+    
     insert_book_query = """
             INSERT INTO books (title, url, image, price, availability, wishlist) 
             VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, price
@@ -68,27 +93,44 @@ def execute_task():
                 book_wishlist = book['wishlist']
                 
                 #Verify if book exist previously in database
-                cursor.execute(select_book_query, (book_title, book_url, book_wishlist,))
-                result = cursor.fetchone()
+                result = execute_query_with_connection(
+                    connection=connection, 
+                    query=select_book_query, 
+                    params=(book_title, book_url, book_wishlist,), 
+                    fetch='one'
+                )
 
                 if result:
                     # UPDATE
-                    cursor.execute(update_book_query, (book_price, book_title, book_url, book_wishlist))
-                    book_id, price = cursor.fetchone()
+                    book_id, price = execute_query_with_connection(
+                        connection=connection,
+                        query=update_book_query,
+                        params=(book_price, book_title, book_url, book_wishlist,),
+                        fetch='one'
+                    )
+
                     print(f"\033[32mBook {book['title']} UPDATED correctly\033[0m")
                 else:
                     # INSERT
                     book_tuple = tuple(book.values())
-                    cursor.execute(insert_book_query, book_tuple)
-                    book_id, price = cursor.fetchone()
+
+                    book_id, price = execute_query_with_connection(
+                        connection=connection,
+                        query=insert_book_query,
+                        params=book_tuple,
+                        fetch='one'
+                    )
+
                     print(f"\033[32mBook {book['title']} INSERTED correctly\033[0m")
-                
-                connection.commit()
                 
                 # ADD RECORD IN PRICE_HISTORY TABLE
                 history_record = (book_id, book_price, timestamp)
-                cursor.execute(add_history_record_query, history_record)
-                connection.commit()
+
+                execute_query_with_connection(
+                    connection=connection,
+                    query=add_history_record_query,
+                    params=history_record
+                )
 
                 print(f"\033[32mBook History record: {history_record} inserted correctly\033[0m")
                 print()
@@ -101,11 +143,8 @@ def execute_task():
 
         counter += len(books)
 
-    result = cursor.fetchone()
-    print(result)
-
-    cursor.close()
-    connection.close()
+    connection.release_connection()
+    connection.close_all_connections()
 
     final_time = time()
 

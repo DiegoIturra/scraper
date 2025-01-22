@@ -46,25 +46,3 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error al cerrar todas las conexiones: {e}")
             raise
-
-
-# Ejemplo de uso
-# if __name__ == "__main__":
-    # # Obtenemos la instancia única
-    # database_manager = DatabaseManager(database_config)
-
-    # # Obtenemos una conexión
-    # conn = database_manager.get_connection()
-
-    # # Usamos la conexión (ejemplo de ejecución de consulta)
-    # try:
-    #     with conn.cursor() as cursor:
-    #         cursor.execute("SELECT NOW()")
-    #         result = cursor.fetchone()
-    #         print("Hora actual en la base de datos:", result)
-    # finally:
-    #     # Liberamos la conexión al pool
-    #     database_manager.release_connection(conn)
-
-    # # Cerramos todas las conexiones al finalizar
-    # database_manager.close_all_connections()

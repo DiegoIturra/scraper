@@ -8,6 +8,12 @@ from utils import Utils
 import os
 import psycopg2
 
+"""
+Todo: Instead of searching only by wishlist, I have to start doing scraping by users first
+then I have to start scraping by wishlist
+
+"""
+
 def process_wishlist(wishlist_url: str, scraper: Scraper) -> List[Any]:
     books_data = scraper.get_book_data_from_wishlist(wishlist_url)
     return books_data
@@ -54,10 +60,9 @@ def execute_task():
         print('Error getting connection')
         return
 
-    get_wishlists_query = "SELECT url FROM wishlists"
+    get_wishlists_query = "SELECT * FROM wishlists"
 
-    results = execute_query_with_connection(connection=connection, query=get_wishlists_query, fetch='all')
-    wishlists = list(map(lambda x: x[0], results))
+    wishlists = execute_query_with_connection(connection=connection, query=get_wishlists_query, fetch='all')
     
     insert_book_query = """
             INSERT INTO books (title, url, image, price, availability, wishlist) 
@@ -80,7 +85,9 @@ def execute_task():
                                    RETURNING id 
                     """
 
-    for wishlist_url in wishlists:
+    for wishlist_tuple in wishlists:
+
+        wishlist_url = wishlist_tuple[1] # Belongs to the url in the record
         books = process_wishlist(wishlist_url, scraper=scraper)
 
         if len(books) == 0:
@@ -96,7 +103,6 @@ def execute_task():
                 book_url = book['url']
                 book_wishlist = book['wishlist']
                 
-                #Verify if book exist previously in database
                 result = execute_query_with_connection(
                     connection=connection, 
                     query=select_book_query, 
@@ -104,6 +110,7 @@ def execute_task():
                     fetch='one'
                 )
 
+                #Verify if book exist previously in database
                 if result:
                     # UPDATE
                     book_id, price = execute_query_with_connection(
@@ -127,6 +134,35 @@ def execute_task():
 
                     print(f"\033[32mBook {book['title']} INSERTED correctly\033[0m")
                 
+                    # Verify if the tuple (wishlist_id, book_id) exist
+                    wishlist_id = wishlist_tuple[0]
+                    wishlist_book_record = (wishlist_id, book_id)
+
+                    print(f"record assossiation {wishlist_book_record}")
+
+                    wishlist_book_get_query = """ SELECT * FROM wishlist_books 
+                        WHERE wishlist_id = %s AND book_id = %s
+                    """
+
+                    assosiation_record = execute_query_with_connection(
+                        connection=connection,
+                        query=wishlist_book_get_query,
+                        params=wishlist_book_record,
+                        fetch='one'
+                    )
+
+                    if not assosiation_record:
+                        wishlist_book_add_query = """ INSERT INTO wishlist_books (wishlist_id, book_id)
+                            VALUES (%s, %s)
+                        """
+
+                        execute_query_with_connection(
+                            connection=connection,
+                            query=wishlist_book_add_query,
+                            params=wishlist_book_record
+                        )
+
+            
                 # ADD RECORD IN PRICE_HISTORY TABLE
                 history_record = (book_id, book_price, timestamp)
 

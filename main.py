@@ -8,12 +8,6 @@ from utils import Utils
 import os
 import psycopg2
 
-"""
-Todo: Instead of searching only by wishlist, I have to start doing scraping by users first
-then I have to start scraping by wishlist
-
-"""
-
 def process_wishlist(wishlist_url: str, scraper: Scraper) -> List[Any]:
     books_data = scraper.get_book_data_from_wishlist(wishlist_url)
     return books_data

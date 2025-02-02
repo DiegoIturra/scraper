@@ -3,14 +3,7 @@ from functools import reduce
 class Utils:
 
     @staticmethod
-    def extract_name_from_url(url: str):
-        tokens = url.split('/')
-        last_token = tokens[-1:]
-        wishlist_name = last_token[0].split('_')[0]
-        return wishlist_name
-
-    @staticmethod
-    def parse_price_into_number(price: str):
+    def parse_price_into_number(price: str) -> int:
         if not price:
             return None
 

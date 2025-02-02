@@ -50,9 +50,6 @@ class Scraper:
         
         books_data = []
 
-        # Extract wishlist name
-        wishlist_name = Utils.extract_name_from_url(wishlist_url)
-
         for result in results:
 
             item = result.find('div', {'class': 'seccionProducto'})
@@ -65,7 +62,6 @@ class Scraper:
                 'image': self.__get_image(item),
                 'price': self.__get_price(item),
                 'availability': self.__get_availability(price),
-                'wishlist': wishlist_name
             }
 
             books_data.append(data)

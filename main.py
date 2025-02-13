@@ -59,18 +59,18 @@ def execute_task():
     wishlists = execute_query_with_connection(connection=connection, query=get_wishlists_query, fetch='all')
     
     insert_book_query = """
-            INSERT INTO books (title, url, image, price, availability, wishlist) 
-            VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, price
+            INSERT INTO books (title, url, image, price, availability) 
+            VALUES (%s, %s, %s, %s, %s) RETURNING id, price
         """
     
     select_book_query = """ 
-            SELECT title FROM books WHERE title = %s AND url = %s AND wishlist = %s
+            SELECT title FROM books WHERE title = %s AND url = %s
         """
     
     update_book_query = """ 
                         UPDATE books 
                         SET price = %s 
-                        WHERE title = %s AND url = %s AND wishlist = %s
+                        WHERE title = %s AND url = %s
                         RETURNING id, price
                     """
     
@@ -95,12 +95,11 @@ def execute_task():
                 book_title = book['title']
                 book_price = book['price']
                 book_url = book['url']
-                book_wishlist = book['wishlist']
                 
                 result = execute_query_with_connection(
                     connection=connection, 
                     query=select_book_query, 
-                    params=(book_title, book_url, book_wishlist,), 
+                    params=(book_title, book_url,), 
                     fetch='one'
                 )
 
@@ -110,7 +109,7 @@ def execute_task():
                     book_id, price = execute_query_with_connection(
                         connection=connection,
                         query=update_book_query,
-                        params=(book_price, book_title, book_url, book_wishlist,),
+                        params=(book_price, book_title, book_url,),
                         fetch='one'
                     )
 

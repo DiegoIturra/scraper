@@ -8,6 +8,12 @@ from utils import Utils
 import os
 import psycopg2
 
+"""
+TODO: 
+    - Add logger to display messages
+    - Handle exceptions in Scraper class methods
+"""
+
 def process_wishlist(wishlist_url: str, scraper: Scraper) -> List[Any]:
     books_data = scraper.get_book_data_from_wishlist(wishlist_url)
     return books_data

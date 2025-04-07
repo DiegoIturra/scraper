@@ -1,9 +1,7 @@
 from bs4 import BeautifulSoup
 from typing import List, Any
 from utils import Utils
-import random
 import requests
-import time
 
 """
 TODO: Add Handle Exceptions in methods to do scraping
@@ -31,6 +29,24 @@ class Scraper:
     def __get_availability(self, price) -> bool:
         return True if price else False
     
+    def __extract_book_data(self, result) -> dict:
+        item = result.find('div', {'class': 'seccionProducto'})
+
+        if not item:
+            return None
+
+        price = self.__get_price(item)
+        
+        data = {
+            'title': self.__get_title(item),
+            'url': self.__get_url(item),
+            'image': self.__get_image(item),
+            'price': self.__get_price(item),
+            'availability': self.__get_availability(price),
+        }
+
+        return data
+    
     def get_book_data_from_wishlist(self, wishlist_url: str) -> List[Any]:
         """
         Extract url for each book in a wishlist url
@@ -48,22 +64,8 @@ class Scraper:
         if not results:
             return []
         
-        books_data = []
-
-        for result in results:
-
-            item = result.find('div', {'class': 'seccionProducto'})
-
-            price = self.__get_price(item)
-            
-            data = {
-                'title': self.__get_title(item),
-                'url': self.__get_url(item),
-                'image': self.__get_image(item),
-                'price': self.__get_price(item),
-                'availability': self.__get_availability(price),
-            }
-
-            books_data.append(data)
+        books_data = list(filter(None, map(self.__extract_book_data, results)))
 
         return books_data
+    
+

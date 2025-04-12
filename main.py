@@ -72,10 +72,10 @@ def execute_task():
     select_book_query = """ 
             SELECT title FROM books WHERE title = %s AND url = %s
         """
-    
+    #TODO: ALSO UPDATE AVAILABILITY OF THE BOOK
     update_book_query = """ 
                         UPDATE books 
-                        SET price = %s 
+                        SET price = %s, availability = %s
                         WHERE title = %s AND url = %s
                         RETURNING id, price
                     """
@@ -101,6 +101,7 @@ def execute_task():
                 book_title = book['title']
                 book_price = book['price']
                 book_url = book['url']
+                book_availability = book['availability']
                 
                 result = execute_query_with_connection(
                     connection=connection, 
@@ -115,7 +116,7 @@ def execute_task():
                     book_id, price = execute_query_with_connection(
                         connection=connection,
                         query=update_book_query,
-                        params=(book_price, book_title, book_url,),
+                        params=(book_price, book_availability, book_title, book_url,),
                         fetch='one'
                     )
 

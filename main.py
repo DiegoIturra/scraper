@@ -3,7 +3,6 @@ from datetime import datetime
 from scraper import Scraper
 from time import time, sleep
 from typing import List, Any
-from utils import Utils
 import os
 
 """

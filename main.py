@@ -1,12 +1,10 @@
 from database_manager import DatabaseManager
 from datetime import datetime
-from pprint import pprint
 from scraper import Scraper
 from time import time, sleep
 from typing import List, Any
 from utils import Utils
 import os
-import psycopg2
 
 """
 TODO: 
